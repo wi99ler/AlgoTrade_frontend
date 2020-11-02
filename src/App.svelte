@@ -1,52 +1,60 @@
 <script lang="ts">
   export let name: string;
-  import FusionCharts from "fusioncharts";
-  import Charts from "fusioncharts/fusioncharts.charts";
-  import SvelteFC, { fcRoot } from "svelte-fusioncharts";
+  import * as LightweightCharts from "lightweight-charts";
+  import axios from "axios";
+  import { validate_component } from "svelte/internal";
 
   // Add dependencies
-  fcRoot(FusionCharts, Charts);
-
-  let dataSource = {
-      chart: {
-        caption: "Recommended Portfolio Split",
-        subCaption: "For a net-worth of $1M",
-        showValues: "1",
-        showPercentInTooltip: "0",
-        numberPrefix: "$",
-        enableMultiSlicing: "1",
-        theme: "fusion",
-      },
-      data: [
-        {
-          label: "Equity",
-          value: "300000",
-        },
-        {
-          label: "Debt",
-          value: "230000",
-        },
-        {
-          label: "Bullion",
-          value: "180000",
-        },
-        {
-          label: "Real-estate",
-          value: "270000",
-        },
-        {
-          label: "Insurance",
-          value: "20000",
-        },
-      ],
+  var chart = LightweightCharts.createChart(document.body, {
+    width: 600,
+    height: 300,
+    layout: {
+      backgroundColor: "#000000",
+      textColor: "rgba(255, 255, 255, 0.9)",
     },
-    chartConfig = {
-      type: "pie2d",
-      width: "600",
-      height: "400",
-      renderAt: "chart-container",
-      dataSource,
-    };
+    grid: {
+      vertLines: {
+        color: "rgba(197, 203, 206, 0.5)",
+      },
+      horzLines: {
+        color: "rgba(197, 203, 206, 0.5)",
+      },
+    },
+    crosshair: {
+      mode: LightweightCharts.CrosshairMode.Normal,
+    },
+    rightPriceScale: {
+      borderColor: "rgba(197, 203, 206, 0.8)",
+    },
+    timeScale: {
+      borderColor: "rgba(197, 203, 206, 0.8)",
+    },
+  });
+
+  var candleSeries = chart.addCandlestickSeries({
+    upColor: "rgba(255, 144, 0, 1)",
+    downColor: "#000",
+    borderDownColor: "rgba(255, 144, 0, 1)",
+    borderUpColor: "rgba(255, 144, 0, 1)",
+    wickDownColor: "rgba(255, 144, 0, 1)",
+    wickUpColor: "rgba(255, 144, 0, 1)",
+  });
+
+  axios.get("http://localhost:3000/api/charts").then((res) => {
+    console.log(res.data);
+
+    candleSeries.setData(res.data);
+  });
+
+  // candleSeries.setData([
+  //   {
+  //     time: "2018-10-19",
+  //     open: 180.34,
+  //     high: 180.99,
+  //     low: 178.57,
+  //     close: 179.85,
+  //   },
+  // ]);
 </script>
 
 <style>
@@ -79,5 +87,4 @@
     <a href="https://svelte.dev/tutorial">Svelte tutorial</a>
     to learn how to build Svelte apps.
   </p>
-  <SvelteFC {...chartConfig} />
 </main>
