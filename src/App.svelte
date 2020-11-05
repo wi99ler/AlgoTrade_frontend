@@ -12,7 +12,6 @@
   let innerHeight = 400;
 
   let current = { from: 0, to: 0 };
-  let view = { from: 0, to: 0 };
 
   let candleData = [];
   let volumeData = [];
@@ -22,38 +21,44 @@
     console.log("setData", current);
     console.log(data[0].time, data[data.length - 1].time);
     console.log(candleData.length, data.length);
-    candleData = [...new Set([...candleData, ...data])];
-    candleData = candleData.sort((a, b) => a.time - b.time);
-    console.log(candleData.length);
-
-    console.log("current", current);
+    data = data.sort((a, b) => a.time - b.time);
+    candleData = [...data, ...candleData];
 
     candleSeries.setData(candleData);
 
-    chart.timeScale().setVisibleRange({ from: view.from, to: view.to });
-
-    current.from = candleData[0].time;
-    current.to = candleData[data.length - 1].time;
-
-    candleData.forEach((item) => {
+    data.forEach((item) => {
       volumeData.push({ time: item.time, value: item.volume });
     });
 
     volumeData.sort((a, b) => a.time - b.time);
     areaSeries.setData(volumeData);
 
-    candleData.forEach((item, i) => {
-      if (i >= 10) {
-        let sum = 0;
-        for (let j = 0; j < 10; j++) {
-          sum += candleData[i - j].close;
-        }
-        averageData.push({ time: item.time, value: sum / 10.0 });
-      }
-    });
+    const newData = [];
 
-    averageData.sort((a, b) => a.time - b.time);
+    let sum = 0;
+    if (data.length > 10) {
+      for (let i = 0; i < 10; i++) {
+        sum += data[i].close;
+      }
+      for (let i = 10; i < data.length; i++) {
+        sum -= data[i - 10].close;
+        sum += data[i].close;
+        newData.push({ time: data[i].time, value: sum / 10 });
+      }
+    }
+
+    //    averageData.sort((a, b) => a.time - b.time);
+    averageData = [...newData, ...averageData];
     lineSeries.setData(averageData);
+
+    // let view = chart.timeScale().getVisibleLogicalRange();
+
+    // console.log("move to ", data.length, view.to - view.from + data.length);
+
+    // chart.timeScale().setVisibleLogicalRange({
+    //   from: data.length,
+    //   to: view.to - view.from + data.length,
+    // });
   }
 
   // Add dependencies
@@ -123,24 +128,11 @@
     chart.resize(innerWidth * 0.8, innerHeight * 0.6);
   });
 
-  chart.timeScale().subscribeVisibleTimeRangeChange((param) => {
-    const from = parseInt(param.from.toString());
-    const to = parseInt(param.to.toString());
+  chart.timeScale().subscribeVisibleLogicalRangeChange((param) => {
+    const barsInfo = candleSeries.barsInLogicalRange(param);
 
-    view.from = parseInt(param.from.toString());
-    view.to = parseInt(param.to.toString());
-
-    console.log(
-      "current",
-      current.from,
-      current.to,
-      "param",
-      param.from,
-      param.to
-    );
-
-    if (from - 60 * 20 < current.from) {
-      // || to + 60 * 20 > current.to)) {
+    if (barsInfo !== null && barsInfo.barsBefore < 50) {
+      console.log("barsInfo", barsInfo);
       console.log(
         "load new data",
         "current",
@@ -151,30 +143,33 @@
         param.to
       );
 
-      console.log("scrap ", (from - 60 * 60).toString(), current.from);
+      console.log(
+        "scrap ",
+        (current.from - 60 * 60 * 3).toString(),
+        current.from
+      );
 
       axios
         .get(
           "http://localhost:3000/api/chart/minute?start=" +
-            (from - 60 * 60).toString() +
+            (current.from - 60 * 60 * 3).toString() +
             "&end=" +
             current.from.toString()
         )
         .then(async (res) => {
           console.log("data size", res.data.length);
           await setData(res.data);
-          current.from = from - 60 * 60;
-          // chart.timeScale().setVisibleRange({
-          //   from: current.from + 60 * 60,
-          //   to: current.to - 60 * 60,
-          // });
+          current.from = res.data[0].time;
         });
     }
   });
 
   onMount(async () => {
     const result = await axios.get("http://localhost:3000/api/chart/minute");
-    setData(result.data);
+    const data = result.data.sort((a, b) => a.time - b.time);
+    current.from = data[0].time;
+    current.to = data[data.length - 1].time;
+    setData(data);
   });
 
   function test() {
