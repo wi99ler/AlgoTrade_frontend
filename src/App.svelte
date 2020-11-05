@@ -12,43 +12,48 @@
   let innerHeight = 400;
 
   let current = { from: 0, to: 0 };
+  let view = { from: 0, to: 0 };
 
   let candleData = [];
   let volumeData = [];
   let averageData = [];
 
-  function setData(data) {
-    console.log("setData");
-    candleData = data.sort((a, b) => a.time - b.time);
+  async function setData(data) {
+    console.log("setData", current);
+    console.log(data[0].time, data[data.length - 1].time);
+    console.log(candleData.length, data.length);
+    candleData = [...new Set([...candleData, ...data])];
+    candleData = candleData.sort((a, b) => a.time - b.time);
+    console.log(candleData.length);
+
+    console.log("current", current);
+
+    candleSeries.setData(candleData);
+
+    chart.timeScale().setVisibleRange({ from: view.from, to: view.to });
 
     current.from = candleData[0].time;
     current.to = candleData[data.length - 1].time;
-
-    console.log(current);
-
-    //    candleSeries.setData(candleData);
-    candleData.forEach((item) => candleSeries.update(item));
 
     candleData.forEach((item) => {
       volumeData.push({ time: item.time, value: item.volume });
     });
 
-    //    areaSeries.setData(volumeData);
-    volumeData.forEach((item) => areaSeries.update(item));
+    volumeData.sort((a, b) => a.time - b.time);
+    areaSeries.setData(volumeData);
 
     candleData.forEach((item, i) => {
       if (i >= 10) {
         let sum = 0;
         for (let j = 0; j < 10; j++) {
-          sum += data[i - j].close;
+          sum += candleData[i - j].close;
         }
         averageData.push({ time: item.time, value: sum / 10.0 });
       }
     });
 
-    averageData.forEach((item) => lineSeries.update(item));
-
-    //    lineSeries.setData(averageData);
+    averageData.sort((a, b) => a.time - b.time);
+    lineSeries.setData(averageData);
   }
 
   // Add dependencies
@@ -119,29 +124,46 @@
   });
 
   chart.timeScale().subscribeVisibleTimeRangeChange((param) => {
-    console.log("time range change");
     const from = parseInt(param.from.toString());
     const to = parseInt(param.to.toString());
-    console.log("from", from, "to", to);
-    if (
-      from !== to &&
-      from - 60 * 20 < current.from // || to + 60 * 20 > current.to)
-    ) {
-      console.log("load new data", param);
 
-      current.from = from - 60 * 60;
-      current.to = to;
+    view.from = parseInt(param.from.toString());
+    view.to = parseInt(param.to.toString());
+
+    console.log(
+      "current",
+      current.from,
+      current.to,
+      "param",
+      param.from,
+      param.to
+    );
+
+    if (from - 60 * 20 < current.from) {
+      // || to + 60 * 20 > current.to)) {
+      console.log(
+        "load new data",
+        "current",
+        current.from,
+        current.to,
+        "param",
+        param.from,
+        param.to
+      );
+
+      console.log("scrap ", (from - 60 * 60).toString(), current.from);
 
       axios
         .get(
-          "http://localhost:3000/api/charts/minute?start=" +
-            current.from +
+          "http://localhost:3000/api/chart/minute?start=" +
+            (from - 60 * 60).toString() +
             "&end=" +
-            current.to
+            current.from.toString()
         )
-        .then((res) => {
+        .then(async (res) => {
           console.log("data size", res.data.length);
-          setData(res.data);
+          await setData(res.data);
+          current.from = from - 60 * 60;
           // chart.timeScale().setVisibleRange({
           //   from: current.from + 60 * 60,
           //   to: current.to - 60 * 60,
@@ -151,9 +173,21 @@
   });
 
   onMount(async () => {
-    const result = await axios.get("http://localhost:3000/api/charts/minute");
+    const result = await axios.get("http://localhost:3000/api/chart/minute");
     setData(result.data);
   });
+
+  function test() {
+    console.log("click");
+
+    let candleData = [
+      { time: 1604244660, open: 54.62, high: 55.5, low: 54.52, close: 54.9 },
+    ];
+
+    candleData.forEach((item) => candleSeries.update(item));
+    // volumeData.forEach((item) => areaSeries.update(item));
+    // averageData.forEach((item) => lineSeries.update(item));
+  }
 </script>
 
 <style>
@@ -188,4 +222,5 @@
     to learn how to build Svelte apps.
   </p>
   <h3>{innerWidth}, {innerHeight}</h3>
+  <button on:click={test}>click</button>
 </main>
