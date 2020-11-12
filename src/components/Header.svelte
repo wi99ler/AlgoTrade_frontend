@@ -1,6 +1,7 @@
 <script>
-  import { link } from "svelte-spa-router";
-  import active from "svelte-spa-router/active";
+  // import { link } from "svelte-spa-router";
+  // import active from "svelte-spa-router/active";
+  import { Link } from "svelte-routing";
 </script>
 
 <style>
@@ -10,8 +11,8 @@
   }
 </style>
 
-<header>
-  <a href="/" use:link use:active> Home </a>
-  <a href="/editor" use:link use:active> Editor </a>
-  <a href="/graph" use:link use:active> Graph </a>
-</header>
+<nav>
+  <Link to="/">Home</Link>
+  <Link to="/editor">Editor</Link>
+  <Link to="/graph">Graph</Link>
+</nav>

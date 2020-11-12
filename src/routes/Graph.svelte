@@ -1,10 +1,17 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { afterUpdate } from "svelte/internal";
+  import { afterUpdate, onDestroy } from "svelte/internal";
   import * as LightweightCharts from "lightweight-charts";
   import axios from "axios";
   import _ from "lodash";
   import Button from "@smui/button";
+
+  import {
+    chartProps,
+    candleProps,
+    areaProps,
+    lineProps,
+  } from "./Graph/graphProps";
 
   let innerWidth = 800;
   let innerHeight = 600;
@@ -14,6 +21,46 @@
   let candleData = [];
   let volumeData = [];
   let averageData = [];
+
+  // Life cycle
+  afterUpdate(() => {
+    chart.resize(innerWidth * 0.8, innerHeight * 0.6);
+  });
+
+  var chart: LightweightCharts.IChartApi,
+    candleSeries: LightweightCharts.ISeriesApi<"Candlestick">,
+    areaSeries: LightweightCharts.ISeriesApi<"Area">,
+    lineSeries: LightweightCharts.ISeriesApi<"Line">;
+
+  onMount(async () => {
+    // Chart Initialize
+    chart = LightweightCharts.createChart("chart", chartProps);
+    candleSeries = chart.addCandlestickSeries(candleProps);
+    areaSeries = chart.addAreaSeries(areaProps);
+    lineSeries = chart.addLineSeries(lineProps);
+
+    chart.timeScale().subscribeVisibleLogicalRangeChange(async (param) => {
+      const barsInfo = candleSeries.barsInLogicalRange(param);
+
+      if (barsInfo !== null && barsInfo.barsBefore < 50) {
+        const result = await axios.get(
+          "http://localhost:3000/api/chart/minute?start=" +
+            (current.from - 60 * 60 * 3).toString() +
+            "&end=" +
+            (current.from - 60).toString()
+        );
+        console.log("data size", result.data.length, result.data);
+        await setData(result.data);
+        current.from = result.data[0].time;
+      }
+    });
+
+    const result = await axios.get("http://localhost:3000/api/chart/minute");
+    const data = result.data.sort((a, b) => a.time - b.time);
+    current.from = data[0].time;
+    current.to = data[data.length - 1].time;
+    setData(data);
+  });
 
   async function setData(data) {
     console.log("setData", current);
@@ -61,125 +108,7 @@
     averageData = [...newData, ...averageData];
     averageData.sort((a, b) => a.time - b.time);
     lineSeries.setData(averageData);
-
-    // let view = chart.timeScale().getVisibleLogicalRange();
-
-    // console.log("move to ", data.length, view.to - view.from + data.length);
-
-    // chart.timeScale().setVisibleLogicalRange({
-    //   from: data.length,
-    //   to: view.to - view.from + data.length,
-    // });
   }
-
-  // Add dependencies
-  var chart = LightweightCharts.createChart(document.body, {
-    width: innerWidth,
-    height: innerHeight,
-    layout: {
-      backgroundColor: "#FFF",
-      textColor: "rgba(0, 0, 0, 0.9)",
-    },
-    grid: {
-      vertLines: {
-        color: "rgba(197, 203, 206, 0.5)",
-      },
-      horzLines: {
-        color: "rgba(197, 203, 206, 0.5)",
-      },
-    },
-    crosshair: {
-      mode: LightweightCharts.CrosshairMode.Normal,
-    },
-    rightPriceScale: {
-      visible: true,
-      borderColor: "rgba(197, 203, 206, 0.8)",
-    },
-    timeScale: {
-      timeVisible: true,
-      borderColor: "rgba(197, 203, 206, 0.8)",
-    },
-  });
-
-  const candleSeries = chart.addCandlestickSeries({
-    // title: "BTC-USDT",
-    upColor: "rgba(255, 0, 0, 1)",
-    borderUpColor: "rgba(255, 0, 0, 1)",
-    wickUpColor: "rgba(255, 0, 0, 1)",
-    downColor: "rgba(0, 0, 255, 1)",
-    borderDownColor: "rgba(0, 0, 255, 1)",
-    wickDownColor: "rgba(0, 0, 255, 1)",
-    scaleMargins: {
-      top: 0,
-      bottom: 0.2,
-    },
-  });
-
-  const areaSeries = chart.addAreaSeries({
-    // title: "Volume",
-    topColor: "rgba(0, 200, 136, 1)",
-    bottomColor: "rgba(0, 200, 136, 0.08)",
-    lineColor: "rgba(0, 200, 136, 0.4)",
-    priceFormat: {
-      type: "volume",
-    },
-    priceScaleId: "volume",
-    scaleMargins: {
-      top: 0.9,
-      bottom: 0.02,
-    },
-  });
-
-  const lineSeries = chart.addLineSeries({
-    // title: "5 unit everage",
-    color: "rgba(55, 150, 250, 1)",
-    lineWidth: 2,
-  });
-
-  afterUpdate(() => {
-    chart.resize(innerWidth * 0.8, innerHeight * 0.6);
-  });
-
-  chart.timeScale().subscribeVisibleLogicalRangeChange(async (param) => {
-    const barsInfo = candleSeries.barsInLogicalRange(param);
-
-    if (barsInfo !== null && barsInfo.barsBefore < 50) {
-      console.log("barsInfo", barsInfo);
-      console.log(
-        "load new data",
-        "current",
-        current.from,
-        current.to,
-        "param",
-        param.from,
-        param.to
-      );
-
-      console.log(
-        "scrap ",
-        (current.from - 60 * 60 * 3).toString(),
-        current.from
-      );
-
-      const result = await axios.get(
-        "http://localhost:3000/api/chart/minute?start=" +
-          (current.from - 60 * 60 * 3).toString() +
-          "&end=" +
-          (current.from - 60).toString()
-      );
-      console.log("data size", result.data.length, result.data);
-      await setData(result.data);
-      current.from = result.data[0].time;
-    }
-  });
-
-  onMount(async () => {
-    const result = await axios.get("http://localhost:3000/api/chart/minute");
-    const data = result.data.sort((a, b) => a.time - b.time);
-    current.from = data[0].time;
-    current.to = data[data.length - 1].time;
-    setData(data);
-  });
 
   function test() {
     console.log(averageData);
@@ -227,4 +156,5 @@
 
 <main>
   <Button on:click={test}>click</Button>
+  <div id="chart" />
 </main>

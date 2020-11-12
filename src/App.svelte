@@ -1,8 +1,12 @@
 <script lang="ts">
-  import Router from "svelte-spa-router";
-  import routes from "./routes";
+  import { Router, Route } from "svelte-routing";
+  import Routes from "./Routes.svelte";
   import Header from "./components/Header.svelte";
+
+  export let url = "/";
 </script>
 
-<Header />
-<Router {routes} />
+<Router {url}>
+  <Header />
+  <Routes />
+</Router>
