@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { afterUpdate, beforeUpdate, onMount } from "svelte";
+  import { beforeUpdate, onMount } from "svelte";
   import axios from "axios";
   import Tab, { Icon, Label } from "@smui/tab";
   import TabBar from "@smui/tab-bar";
@@ -12,6 +12,8 @@
   import "brace/keybinding/vim";
   import "brace/theme/monokai";
 
+  import { deepEqual, deepClone } from "../shared/util";
+
   let editor: ace.Editor;
   let newDocName = "";
 
@@ -19,20 +21,24 @@
     {
       icon: "add",
       label: "",
-      edit: false,
       value: "",
       function: async () => {
-        let flag = true;
-        while (flag) {
-          await dialog.open();
-          for (let i = 0; i < iconTabs.length; i++) {
-            if (iconTabs[i].label === newDocName) flag = true;
-          }
-          flag = false;
-        }
+        await dialog.open();
       },
     },
   ];
+
+  let savedTabs = deepClone(iconTabs);
+
+  setInterval(async () => {
+    for (let i = 0; i < iconTabs.length; i++)
+      if (iconTabs[i].label === current) iconTabs[i].value = editor.getValue();
+
+    if (!deepEqual(savedTabs, iconTabs)) {
+      await saveToServer();
+      savedTabs = deepClone(iconTabs);
+    }
+  }, 5000);
 
   $: resolveTabs = Promise.resolve(iconTabs);
 
@@ -47,19 +53,24 @@
   let innerHeight = 600;
 
   function closeHandler(e) {
-    iconTabs = [
-      {
-        icon: "description",
-        label: newDocName,
-        edit: true,
-        value: "",
-        function: async () => {},
-      },
-      ...iconTabs,
-    ];
+    let unique = true;
+    for (let i = 0; i < iconTabs.length; i++) {
+      if (iconTabs[i].label === newDocName) unique = false;
+    }
+    if (unique) {
+      iconTabs = [
+        {
+          icon: "description",
+          label: newDocName,
+          value: "",
+          function: async () => {},
+        },
+        ...iconTabs,
+      ];
+    }
+    newDocName = "";
     if (iconTabs.length === 1) visible = false;
     else visible = true;
-    console.log(iconTabs);
   }
 
   onMount(async () => {
@@ -67,14 +78,16 @@
     editor.getSession().setMode("ace/mode/python");
     editor.setTheme("ace/theme/monokai");
     editor.setKeyboardHandler("ace/keyboard/vim");
+    editor.$blockScrolling = Infinity;
+    await loadFromServer();
     editor.setValue(activeTab.value);
     editor.clearSelection();
   });
 
   beforeUpdate(() => {
-    console.log("update");
     if (iconTabs.length === 1) visible = false;
     if (editor) {
+      const position = editor.getCursorPosition();
       for (let i = 0; i < iconTabs.length; i++) {
         if (iconTabs[i].label === current)
           iconTabs[i].value = editor.getValue();
@@ -82,18 +95,49 @@
       editor.setValue(activeTab.value);
       editor.clearSelection();
       current = activeTab.label;
+      editor.moveCursorTo(position.row, position.column);
     }
+    if (activeTab.icon === "add") activeTab = iconTabs[0];
   });
 
-  afterUpdate(() => {});
+  async function saveToServer() {
+    // let id = 0;
+    // let name = "";
+    // let email = "";
 
-  function saveToServer() {
-    console.log(editor.getValue());
-    axios
-      .post("http://localhost:3000/api/file/", { data: editor.getValue() })
-      .then((res) => {
-        console.log("response is ", res);
+    // const res = await axios.get("http://localhost:3000/login/profile");
+    // if (typeof res.data === "object") {
+    //   id = res.data.data.id;
+    //   name = res.data.data.name;
+    //   email = res.data.data.email;
+    // }
+
+    iconTabs.forEach((item) => {
+      if (item.icon !== "add") {
+        axios.post("http://localhost:3000/api/file/", {
+          title: item.label,
+          content: item.value,
+        });
+      }
+    });
+  }
+
+  async function loadFromServer() {
+    axios.get("http://localhost:3000/api/file/").then((res) => {
+      res.data.forEach((item) => {
+        iconTabs = [
+          {
+            icon: "description",
+            label: item.filename,
+            value: item.content,
+            function: async () => {},
+          },
+          ...iconTabs,
+        ];
       });
+      if (iconTabs.length === 1) visible = false;
+      else visible = true;
+    });
   }
 </script>
 
@@ -128,8 +172,13 @@
       </Tab>
     </TabBar>
   {/await}
-  <div id="editor" class="editor" style={'height:500px'} hidden={!visible} />
-  <Button on:click={saveToServer}>save</Button>
+  <div
+    id="editor"
+    class="editor"
+    style={'height:500px;clear:both;'}
+    hidden={!visible} />
+  <!--Button on:click={saveToServer}>save</Button-->
+  <!--Button on:click={loadFromServer}>load</Button-->
 
   <Dialog bind:this={dialog} on:MDCDialog:closed={closeHandler}>
     <Title>New Document</Title>
@@ -141,13 +190,3 @@
     </Actions>
   </Dialog>
 </main>
-
-<!--
-          {#if !Tab.edit}
-          <Icon class="material-icons">{tab.icon}</Icon>
-          <Label>{tab.label}</Label>
-        {:else}
-          <TextField label={tab.label} bind:value={newlabel} />
-        {/if}
-
--->

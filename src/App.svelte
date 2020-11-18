@@ -1,6 +1,6 @@
 <script lang="ts">
   import { Router, Route } from "svelte-routing";
-  import Routes from "./Routes.svelte";
+  import Routes from "./routes/Routes.svelte";
   import Header from "./components/Header.svelte";
 
   export let url = "/";
@@ -8,5 +8,4 @@
 
 <Router {url}>
   <Header />
-  <Routes />
 </Router>

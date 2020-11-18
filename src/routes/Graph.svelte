@@ -44,18 +44,19 @@
 
       if (barsInfo !== null && barsInfo.barsBefore < 50) {
         const result = await axios.get(
-          "http://localhost:3000/api/chart/minute?start=" +
+          "http://localhost:3000/api/chart/day?start=" +
             (current.from - 60 * 60 * 3).toString() +
             "&end=" +
             (current.from - 60).toString()
         );
-        console.log("data size", result.data.length, result.data);
+        // console.log("data size", result.data.length, result.data);
         await setData(result.data);
         current.from = result.data[0].time;
       }
     });
 
-    const result = await axios.get("http://localhost:3000/api/chart/minute");
+    const result = await axios.get("http://localhost:3000/api/chart/day");
+    //    console.log(result);
     const data = result.data.sort((a, b) => a.time - b.time);
     current.from = data[0].time;
     current.to = data[data.length - 1].time;
@@ -63,9 +64,9 @@
   });
 
   async function setData(data) {
-    console.log("setData", current);
-    console.log(data[0].time, data[data.length - 1].time);
-    console.log(candleData.length, data.length);
+    //    console.log("setData", current);
+    //    console.log(data[0].time, data[data.length - 1].time);
+    //    console.log(candleData.length, data.length);
     const uniqueData = [];
     for (let i = 0; i < data.length; i++) {
       let flag = true;
@@ -111,7 +112,7 @@
   }
 
   function test() {
-    console.log(averageData);
+    //    console.log(averageData);
     //    averageData = averageData.sort((a, b) => a.time - b.time);
     for (let i = 0; i < averageData.length - 1; i++) {
       if (averageData[i].time > averageData[i + 1].time) {
@@ -123,7 +124,6 @@
         );
       }
     }
-    console.log("a");
     for (let i = 0; i < candleData.length - 1; i++) {
       if (candleData[i].time > candleData[i + 1].time) {
         console.log(
