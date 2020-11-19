@@ -31,6 +31,7 @@
     "cssimport": "^0.1.22",
     "lightweight-charts": "^3.1.5",
     "lodash": "^4.17.20",
+    "rollup-plugin-css-only": "^2.1.0",
     "rollup-plugin-scss": "^2.6.1",
     "scss": "^0.2.4",
     "sirv-cli": "^1.0.0",

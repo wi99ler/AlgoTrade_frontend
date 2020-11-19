@@ -40,7 +40,7 @@
         <Title
           class="main-title"
           style="font-family: Pacifico;text-decoration: none;color: #ffffff;">
-          Wiggler Quant
+          WiQuant
         </Title>
       </Link>
     </Section>

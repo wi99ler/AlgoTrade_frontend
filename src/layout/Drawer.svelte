@@ -28,8 +28,14 @@
 
 <Drawer variant="modal" bind:this={drawer} bind:open={drawerOpen}>
   <Header>
-    <Title style="font-family: Pacifico;text-decoration: none;color: #000000;">
-      Wigger Quant
+    <Title
+      style="font-family: Pacifico;text-decoration: none;color: #000000;"
+      on:click={() => {
+        setActive('Home');
+        drawerOpen = false;
+        navigate('/');
+      }}>
+      WiQuant
     </Title>
   </Header>
   <Content>
@@ -43,9 +49,7 @@
             navigate('/editor');
           }}
           activated={active === 'Editor'}>
-          <Graphic class="material-icons" aria-hidden="true">
-            Description
-          </Graphic>
+          <Graphic class="material-icons">description</Graphic>
           <Text>Editor</Text>
         </Item>
       {/if}
@@ -57,7 +61,7 @@
           navigate('/graph');
         }}
         activated={active === 'Graph'}>
-        <Graphic class="material-icons" aria-hidden="true">ShowChart</Graphic>
+        <Graphic class="material-icons">trending_up</Graphic>
         <Text>Graph</Text>
       </Item>
     </List>
