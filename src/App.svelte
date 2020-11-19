@@ -1,11 +1,20 @@
 <script lang="ts">
-  import { Router, Route } from "svelte-routing";
-  import Routes from "./routes/Routes.svelte";
-  import Header from "./components/Header.svelte";
+  import { Router } from "svelte-routing";
+  import { AppContent, Scrim } from "@smui/drawer";
+  import Content from "./layout/Content.svelte";
+  import Header from "./layout/Header.svelte";
+  import Drawer from "./layout/Drawer.svelte";
 
-  export let url = "/";
+  export let url = "";
+
+  let drawerOpen = false;
 </script>
 
 <Router {url}>
-  <Header />
+  <Drawer bind:drawerOpen />
+  <Scrim />
+  <AppContent>
+    <Header bind:drawerOpen />
+    <Content />
+  </AppContent>
 </Router>

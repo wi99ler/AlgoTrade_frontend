@@ -177,8 +177,6 @@
     class="editor"
     style={'height:500px;clear:both;'}
     hidden={!visible} />
-  <!--Button on:click={saveToServer}>save</Button-->
-  <!--Button on:click={loadFromServer}>load</Button-->
 
   <Dialog bind:this={dialog} on:MDCDialog:closed={closeHandler}>
     <Title>New Document</Title>
