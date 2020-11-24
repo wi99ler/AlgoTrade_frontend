@@ -33,6 +33,7 @@
     "lodash": "^4.17.20",
     "rollup-plugin-css-only": "^2.1.0",
     "rollup-plugin-scss": "^2.6.1",
+    "sass": "^1.29.0",
     "scss": "^0.2.4",
     "sirv-cli": "^1.0.0",
     "svelte-ace": "^1.0.12",
