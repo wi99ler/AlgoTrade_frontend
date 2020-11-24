@@ -9,7 +9,7 @@
 
   onMount(() => {
     axios
-      .get("http://localhost:3000/login/profile")
+      .get("https://wiquant.site/login/profile")
       .then((res) => {
         if (typeof res.data === "object") {
           id = res.data.data.id;

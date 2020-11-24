@@ -44,7 +44,7 @@
 
       if (barsInfo !== null && barsInfo.barsBefore < 50) {
         const result = await axios.get(
-          "http://localhost:3000/api/chart/day?start=" +
+          "https://wiquant.site/api/chart/day?start=" +
             (current.from - 60 * 60 * 3).toString() +
             "&end=" +
             (current.from - 60).toString()
@@ -55,7 +55,7 @@
       }
     });
 
-    const result = await axios.get("http://localhost:3000/api/chart/day");
+    const result = await axios.get("https://wiquant.site/api/chart/day");
     //    console.log(result);
     const data = result.data.sort((a, b) => a.time - b.time);
     current.from = data[0].time;

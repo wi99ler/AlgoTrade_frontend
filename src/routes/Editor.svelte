@@ -105,7 +105,7 @@
     // let name = "";
     // let email = "";
 
-    // const res = await axios.get("http://localhost:3000/login/profile");
+    // const res = await axios.get("https://wiquant.site/login/profile");
     // if (typeof res.data === "object") {
     //   id = res.data.data.id;
     //   name = res.data.data.name;
@@ -114,7 +114,7 @@
 
     iconTabs.forEach((item) => {
       if (item.icon !== "add") {
-        axios.post("http://localhost:3000/api/file/", {
+        axios.post("https://wiquant.site/api/file/", {
           title: item.label,
           content: item.value,
         });
@@ -123,7 +123,7 @@
   }
 
   async function loadFromServer() {
-    axios.get("http://localhost:3000/api/file/").then((res) => {
+    axios.get("https://wiquant.site/api/file/").then((res) => {
       res.data.forEach((item) => {
         iconTabs = [
           {
