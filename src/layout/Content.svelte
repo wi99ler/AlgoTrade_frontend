@@ -1,6 +1,6 @@
 <script>
   import { Route } from "svelte-routing";
-  import Card from "@smui/card";
+  import { Card } from "svelte-materialify";
 
   import Home from "../routes/Home.svelte";
   import Editor from "../routes/Editor.svelte";
@@ -8,13 +8,7 @@
   import NotFound from "../routes/NotFound.svelte";
 </script>
 
-<style>
-  .main-content {
-    padding: 16px;
-  }
-</style>
-
-<Card class="main-content" style={'padding:16px;'}>
+<Card class="main-content" style={"padding:16px;"}>
   <Route path="/">
     <Home />
   </Route>
@@ -28,3 +22,9 @@
     <NotFound />
   </Route>
 </Card>
+
+<style>
+  .main-content {
+    padding: 16px;
+  }
+</style>

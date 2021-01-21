@@ -1,69 +1,62 @@
 <script>
   import { navigate } from "svelte-routing";
 
-  import Drawer, { Content, Header, Title } from "@smui/drawer";
-  import List, { Item, Graphic, Text } from "@smui/list";
+  import {
+    NavigationDrawer,
+    List,
+    Subheader,
+    ListItem,
+    ListItemGroup,
+    Icon,
+    Divider,
+    Overlay,
+  } from "svelte-materialify";
 
   import { username } from "../shared/stores";
 
   let drawer;
-  export let drawerOpen = false;
-  export let active = "";
+  export let active = false;
 
-  let name = "";
-
-  const unsubscribe = username.subscribe((value) => (name = value));
-
-  function setActive(par) {
-    active = par;
-  }
+  const items = [
+    { text: "editor", icon: "mdi-folder" },
+    { text: "graph", icon: "mdi-folder" },
+  ];
 </script>
 
-<style>
+<NavigationDrawer absolute bind:this={drawer} bind:active>
+  <Subheader>
+    <h4
+      style="font-family: Pacifico;text-decoration: none;color: #000000;"
+      on:click={() => {
+        active = false;
+        navigate("/");
+      }}
+    >WiQuant</h4>
+  </Subheader>
+  <Divider />
+  <List nav>
+    <ListItemGroup value="[1]">
+      {#each items as item}
+        <ListItem
+          on:click={() => {
+            active = false;
+            navigate("/" + item.text);
+          }}
+        >
+          <span slot="prepend">
+            <Icon class="mdi {items.icon}" />
+          </span>
+          {item.text}
+        </ListItem>
+      {/each}
+    </ListItemGroup>
+  </List>
+</NavigationDrawer>
+<Overlay {active} absolute on:click={() => (active = !active)} index={1} />
+
+<!-- <Drawer>
   :global(header a.active) {
     font-weight: bold;
     text-decoration: underline;
   }
-</style>
-
-<Drawer variant="modal" bind:this={drawer} bind:open={drawerOpen}>
-  <Header>
-    <Title
-      style="font-family: Pacifico;text-decoration: none;color: #000000;"
-      on:click={() => {
-        setActive('Home');
-        drawerOpen = false;
-        navigate('/');
-      }}>
-      WiQuant
-    </Title>
-  </Header>
-  <Content>
-    <List>
-      {#if name !== ''}
-        <Item
-          href="javascript:void(0)"
-          on:click={() => {
-            setActive('Editor');
-            drawerOpen = false;
-            navigate('/editor');
-          }}
-          activated={active === 'Editor'}>
-          <Graphic class="material-icons">description</Graphic>
-          <Text>Editor</Text>
-        </Item>
-      {/if}
-      <Item
-        href="javascript:void(0)"
-        on:click={() => {
-          setActive('Graph');
-          drawerOpen = false;
-          navigate('/graph');
-        }}
-        activated={active === 'Graph'}>
-        <Graphic class="material-icons">trending_up</Graphic>
-        <Text>Graph</Text>
-      </Item>
-    </List>
-  </Content>
-</Drawer>
+</Drawer> -->

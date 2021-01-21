@@ -1,13 +1,36 @@
 <script>
   import { Link } from "svelte-routing";
 
-  import TopAppBar, { Row, Section, Title } from "@smui/top-app-bar";
-  import IconButton from "@smui/icon-button";
+  import { AppBar, Button, Icon, Overlay } from "svelte-materialify";
 
   import Profile from "../components/Profile.svelte";
+  import Drawer from "./Drawer.svelte";
 
-  export let drawerOpen = false;
+  export let active = false;
 </script>
+
+<svelte:head>
+  <link
+    href="https://fonts.googleapis.com/css?family=Pacifico"
+    rel="stylesheet"
+  />
+</svelte:head>
+
+<AppBar class="primary-color">
+  <div slot="icon">
+    <Button fab depressed text on:click={() => (active = !active)}>
+      <Icon class="mdi mdi-menu" />
+    </Button>
+  </div>
+  <span
+    slot="title"
+    style="font-family: Pacifico;text-decoration: none;color: #ffffff;">
+    <Link to="/">WiQuant</Link>
+  </span>
+  <div style="flex-grow:1" />
+  <Profile />
+</AppBar>
+<Drawer absolute {active} />
 
 <style>
   .main-title {
@@ -21,31 +44,3 @@
     text-decoration: underline;
   }
 </style>
-
-<svelte:head>
-  <link
-    href="https://fonts.googleapis.com/css?family=Pacifico"
-    rel="stylesheet" />
-</svelte:head>
-
-<TopAppBar variant="static" color="primary">
-  <Row>
-    <Section>
-      <IconButton
-        class="material-icons"
-        on:click={() => (drawerOpen = !drawerOpen)}>
-        menu
-      </IconButton>
-      <Link to="/">
-        <Title
-          class="main-title"
-          style="font-family: Pacifico;text-decoration: none;color: #ffffff;">
-          WiQuant
-        </Title>
-      </Link>
-    </Section>
-    <Section align="end" toolbar>
-      <Profile />
-    </Section>
-  </Row>
-</TopAppBar>

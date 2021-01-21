@@ -1,12 +1,24 @@
 import svelte from 'rollup-plugin-svelte';
-import resolve from '@rollup/plugin-node-resolve';
 import commonjs from '@rollup/plugin-commonjs';
+import resolve from '@rollup/plugin-node-resolve';
 import postcss from 'rollup-plugin-postcss';
 import livereload from 'rollup-plugin-livereload';
 import { terser } from 'rollup-plugin-terser';
 import sveltePreprocess from 'svelte-preprocess';
 import typescript from '@rollup/plugin-typescript';
-import css from "rollup-plugin-css-only";
+import css from 'rollup-plugin-css-only';
+
+import replace from '@rollup/plugin-replace';
+import path from 'path';
+import dotenv from 'dotenv';
+
+if (process.env.NODE_ENV === 'production') {
+	dotenv.config({path: path.join(__dirname, '/config/.env.prod')});
+} else if (process.env.NODE_ENV === 'development') {
+	dotenv.config({path: path.join(__dirname, '/config/.env.dev')});
+} else {
+	throw new Error('process.env.NODE_ENV is not set.')
+}
 
 const production = !process.env.ROLLUP_WATCH;
 
@@ -40,7 +52,9 @@ export default {
 		file: 'public/build/bundle.js'
 	},
 	plugins: [
-		css({ output: "public/build/extra.css" }),
+		replace({
+			BACKEND_URL: JSON.stringify(process.env.BACKEND_URL)
+		}),
 		svelte({
 			hydratable: true,
 			// enable run-time checks when not in production
@@ -50,8 +64,10 @@ export default {
 			css: css => {
 				css.write('bundle.css');
 			},
-			preprocess: sveltePreprocess(),
+			preprocess:sveltePreprocess(),
+			emitCss: true,
 		}),
+		css({ output: "public/build/extra.css" }),
 
 		// If you have external dependencies installed from
 		// npm, you'll most likely need these plugins. In
@@ -69,7 +85,7 @@ export default {
       use: [
         ['sass', {
           includePaths: [
-            './theme',
+            './src/theme',
             './node_modules'
           ]
         }]

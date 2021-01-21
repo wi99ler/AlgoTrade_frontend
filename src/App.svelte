@@ -1,6 +1,5 @@
 <script lang="ts">
   import { Router } from "svelte-routing";
-  import { AppContent, Scrim } from "@smui/drawer";
   import Content from "./layout/Content.svelte";
   import Header from "./layout/Header.svelte";
   import Drawer from "./layout/Drawer.svelte";
@@ -11,10 +10,6 @@
 </script>
 
 <Router {url}>
-  <Drawer bind:drawerOpen />
-  <Scrim />
-  <AppContent>
-    <Header bind:drawerOpen />
-    <Content />
-  </AppContent>
+  <Header bind:drawerOpen />
+  <Content />
 </Router>

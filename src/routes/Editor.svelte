@@ -105,7 +105,7 @@
     // let name = "";
     // let email = "";
 
-    // const res = await axios.get("https://wiquant.site/login/profile");
+    // const res = await axios.get(BACKEND_URL + "/login/profile");
     // if (typeof res.data === "object") {
     //   id = res.data.data.id;
     //   name = res.data.data.name;
@@ -114,7 +114,7 @@
 
     iconTabs.forEach((item) => {
       if (item.icon !== "add") {
-        axios.post("https://wiquant.site/api/file/", {
+        axios.post(BACKEND_URL + "/api/file/", {
           title: item.label,
           content: item.value,
         });
@@ -123,7 +123,7 @@
   }
 
   async function loadFromServer() {
-    axios.get("https://wiquant.site/api/file/").then((res) => {
+    axios.get(BACKEND_URL + "/api/file/").then((res) => {
       res.data.forEach((item) => {
         iconTabs = [
           {
@@ -140,6 +140,35 @@
     });
   }
 </script>
+
+<main>
+  {#await resolveTabs then iconTabs}
+    <TabBar tabs={iconTabs} let:tab bind:active={activeTab}>
+      <Tab {tab} minWidth on:click={tab.function}>
+        <Icon class="material-icons">{tab.icon}</Icon>
+        <Label>{tab.label}</Label>
+      </Tab>
+    </TabBar>
+  {/await}
+  <div
+    id="editor"
+    class="editor"
+    style={"height:500px;clear:both;"}
+    hidden={!visible}
+  />
+
+  <Dialog bind:this={dialog} on:MDCDialog:closed={closeHandler}>
+    <Title>New Document</Title>
+    <Content>
+      <TextField bind:value={newDocName} label="New Document Name" />
+    </Content>
+    <Actions>
+      <Button action="submit">Submit</Button>
+    </Actions>
+  </Dialog>
+</main>
+
+<svelte:window bind:innerWidth bind:innerHeight />
 
 <style>
   main {
@@ -160,31 +189,3 @@
     }
   }
 </style>
-
-<svelte:window bind:innerWidth bind:innerHeight />
-
-<main>
-  {#await resolveTabs then iconTabs}
-    <TabBar tabs={iconTabs} let:tab bind:active={activeTab}>
-      <Tab {tab} minWidth on:click={tab.function}>
-        <Icon class="material-icons">{tab.icon}</Icon>
-        <Label>{tab.label}</Label>
-      </Tab>
-    </TabBar>
-  {/await}
-  <div
-    id="editor"
-    class="editor"
-    style={'height:500px;clear:both;'}
-    hidden={!visible} />
-
-  <Dialog bind:this={dialog} on:MDCDialog:closed={closeHandler}>
-    <Title>New Document</Title>
-    <Content>
-      <TextField bind:value={newDocName} label="New Document Name" />
-    </Content>
-    <Actions>
-      <Button action="submit">Submit</Button>
-    </Actions>
-  </Dialog>
-</main>

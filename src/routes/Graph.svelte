@@ -4,7 +4,7 @@
   import * as LightweightCharts from "lightweight-charts";
   import axios from "axios";
   import _ from "lodash";
-  import Button from "@smui/button";
+  import { Button } from "svelte-materialify";
 
   import {
     chartProps,
@@ -44,7 +44,8 @@
 
       if (barsInfo !== null && barsInfo.barsBefore < 50) {
         const result = await axios.get(
-          "https://wiquant.site/api/chart/day?start=" +
+          BACKEND_URL +
+            "/api/chart/day?start=" +
             (current.from - 60 * 60 * 3).toString() +
             "&end=" +
             (current.from - 60).toString()
@@ -55,7 +56,7 @@
       }
     });
 
-    const result = await axios.get("https://wiquant.site/api/chart/day");
+    const result = await axios.get(BACKEND_URL + "/api/chart/day");
     //    console.log(result);
     const data = result.data.sort((a, b) => a.time - b.time);
     current.from = data[0].time;
@@ -137,6 +138,13 @@
   }
 </script>
 
+<svelte:window bind:innerWidth bind:innerHeight />
+
+<main>
+  <Button on:click={test}>click</Button>
+  <div id="chart" />
+</main>
+
 <style>
   main {
     text-align: center;
@@ -151,10 +159,3 @@
     }
   }
 </style>
-
-<svelte:window bind:innerWidth bind:innerHeight />
-
-<main>
-  <Button on:click={test}>click</Button>
-  <div id="chart" />
-</main>
